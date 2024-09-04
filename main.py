@@ -7,6 +7,7 @@ import crud
 import schemas
 from db.engine import SessionLocal
 
+
 app = FastAPI()
 
 

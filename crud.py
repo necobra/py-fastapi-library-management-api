@@ -4,68 +4,64 @@ from db import models
 import schemas
 
 
-def get_book_list(db: Session, author_id: str | None = None):
-    queryset = db.query(models.DBBook)
+def get_book_list(
+    db: Session, author_id: int | None = None
+) -> list[models.Book]:
+    queryset = db.query(models.Book)
 
     if author_id:
-        queryset = queryset.filter(models.DBBook.author_id == author_id)
+        queryset = queryset.filter(models.Book.author_id == author_id)
 
-    return queryset
-
-
-def get_book(db: Session, book_id: int):
-    return db.query(models.DBBook).filter(models.DBBook.id == book_id).first()
+    return queryset.all()
 
 
-def get_book_by_title(db: Session, title: str):
-    return db.query(models.DBBook).filter(models.DBBook.title == title).first()
+def get_book(db: Session, book_id: int) -> models.Book:
+    return db.query(models.Book).filter(models.Book.id == book_id).first()
 
 
-def create_book(db: Session, book: schemas.BookCreate):
-    db_book = models.DBBook(
-        title=book.title,
-        summary=book.summary,
-        publication_date=book.publication_date,
-        author_id=book.author_id,
-    )
-    db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
-
-    return db_book
+def get_book_by_title(db: Session, title: str) -> models.Book:
+    return db.query(models.Book).filter(models.Book.title == title).first()
 
 
-def get_all_authors(db: Session):
-    return db.query(models.DBAuthor)
+def create_book(db: Session, book: schemas.BookCreate) -> models.Book:
+    try:
+        db_book = models.Book(
+            title=book.title,
+            summary=book.summary,
+            publication_date=book.publication_date,
+            author_id=book.author_id,
+        )
+        db.add(db_book)
+        db.commit()
+        db.refresh(db_book)
+
+        return db_book
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
-def get_author(db: Session, author_id: int):
+def get_all_authors(db: Session) -> list[models.Author]:
+    return db.query(models.Author).all()
+
+
+def get_author(db: Session, author_id: int) -> models.Author:
     return (
-        db.query(models.DBAuthor)
-        .filter(models.DBAuthor.id == author_id)
-        .first()
+        db.query(models.Author).filter(models.Author.id == author_id).first()
     )
 
 
-def get_author_by_name(db: Session, name: str):
-    return (
-        db.query(models.DBAuthor).filter(models.DBAuthor.name == name).first()
-    )
+def get_author_by_name(db: Session, name: str) -> models.Author:
+    return db.query(models.Author).filter(models.Author.name == name).first()
 
 
-def create_author(db: Session, author: schemas.AuthorCreate):
-    db_author = models.DBAuthor(name=author.name, bio=author.bio)
-    db.add(db_author)
-    db.commit()
-    db.refresh(db_author)
-
-    return db_author
-
-
-def test(db: Session, author: schemas.AuthorCreate):
-    db_author = models.DBAuthor(name=author.name, bio=author.bio)
-    db.add(db_author)
-    db.commit()
-    db.refresh(db_author)
-
-    return db_author
+def create_author(db: Session, author: schemas.AuthorCreate) -> models.Author:
+    try:
+        db_author = models.Author(name=author.name, bio=author.bio)
+        db.add(db_author)
+        db.commit()
+        db.refresh(db_author)
+        return db_author
+    except Exception as e:
+        db.rollback()
+        raise e
